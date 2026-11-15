@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -591,9 +592,11 @@
       }
     ];
 
+    const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyIuAP28O-bwSdwTfCeAdiWSsFfwNV6OOg-z5kQVLsSAP8u8FZ2BcUP1Vwh21R8hXVH8g/exec';
+
     // ====== STATE ======
     const state = {
-      gasUrl: '',
+      gasUrl: DEFAULT_GAS_URL,
       workerName: '임훈',
       month: '2026-11',
       stageFilter: 'ALL',
@@ -620,7 +623,7 @@
       const yyyy = now.getFullYear();
       const mm = String(now.getMonth() + 1).padStart(2, '0');
       state.month = getStorage('ho_month', `${yyyy}-${mm}`);
-      state.gasUrl = getStorage('ho_gas_url', '');
+      state.gasUrl = getStorage('ho_gas_url', DEFAULT_GAS_URL);
       state.workerName = getStorage('ho_worker', '임훈');
       state.darkMode = getStorage('ho_dark', '0') === '1';
 
@@ -672,9 +675,11 @@
             updateSyncBadge('ok', `시트 연동됨 (${state.customers.length}건)`);
             renderAll();
             return;
+          } else if (res && res.error) {
+            showToast('시트 오류: ' + res.error);
           }
         } catch (err) {
-          showToast('시트 연동 실패: 데모 데이터로 표시합니다.');
+          showToast('시트 연결 실패(권한/배포 설정 확인): 데모 데이터로 표시합니다.');
         }
       }
 
@@ -1382,3 +1387,4 @@
   </script>
 </body>
 </html>
+```
