@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>하이오더 현장 · 공정 관리</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-page: #F6F7F9;
+      --bg-card: #FFFFFF;
+      --bg-sub: #F9FAFB;
+      --text-primary: #14171F;
+      --text-secondary: #4B5563;
+      --text-muted: #8B95A1;
+      --border-color: #E6E8EC;
+      --accent: #E60012;
+      --accent-soft: rgba(230, 0, 18, 0.08);
+      --kt-dark: #14171F;
+      --kt-mint: #00A88F;
+    }
+    .dark {
+      --bg-page: #0D0F14;
+      --bg-card: #171A22;
+      --bg-sub: #1F242F;
+      --text-primary: #F5F6F8;
+      --text-secondary: #B4BCC8;
+      --text-muted: #8B95A1;
+      --border-color: #2A303C;
+      --accent: #FF2E3B;
+      --accent-soft: rgba(255, 46, 59, 0.14);
+      --kt-dark: #1D222D;
+      --kt-mint: #14B8A6;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      margin: 0;
+      padding-bottom: 84px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+    }
+    .sub-card {
+      background-color: var(--bg-sub);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .tap-btn { transition: transform 0.12s ease, opacity 0.12s ease; }
+    .tap-btn:active { transform: scale(0.97); opacity: 0.9; }
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-in { animation: fadeSlideUp 0.2s ease-out; }
+  </style>
+</head>
+<body>
+  <!-- Top App Bar -->
+  <header class="sticky top-0 z-30 border-b" style="background-color: var(--bg-card); border-color: var(--border-color);">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <button id="btnBackToList" class="hidden tap-btn p-2 -ml-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5" aria-label="목록으로">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <div class="px-2.5 h-9 rounded-xl flex items-center justify-center shrink-0 font-extrabold text-white text-xs tracking-tight gap-1" style="background: linear-gradient(135deg, #14171F, #2B3140);">
+          <span class="w-2 h-2 rounded-full" style="background-color: #E60012;"></span>
+          <span>kt hiorder</span>
+        </div>
+        <div class="min-w-0">
+          <h1 id="headerTitle" class="text-base font-extrabold tracking-tight truncate">하이오더 현장 · 공정 관리</h1>
+          <div class="flex items-center gap-1.5 text-xs" style="color: var(--text-muted);">
+            <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
+            <span id="syncStatusText" class="truncate">데모 모드 (샘플 데이터)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button id="btnDarkToggle" class="tap-btn p-2 rounded-xl border text-xs font-medium" style="border-color: var(--border-color); color: var(--text-secondary);" title="다크 모드 전환">
+          <span id="darkIcon">🌙</span>
+        </button>
+        <button id="btnSyncNow" class="tap-btn px-2.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1" style="border-color: var(--border-color); color: var(--text-secondary);">
+          <span>↻</span><span class="hidden sm:inline">동기화</span>
+        </button>
+        <button id="btnOpenSettings" class="tap-btn px-2.5 py-2 rounded-xl text-xs font-semibold" style="background-color: var(--accent-soft); color: var(--accent);">
+          ⚙️ 연동
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-3xl mx-auto px-4 pt-4">
+    <!-- LIST VIEW -->
+    <section id="viewList" class="space-y-4 animate-in">
+      <!-- KT Hi-Order Brand Strip -->
+      <div class="rounded-2xl p-4 text-white flex items-center justify-between gap-3 shadow-sm" style="background: linear-gradient(135deg, #14171F 0%, #232938 100%);">
+        <div class="min-w-0">
+          <div class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2 py-0.5 rounded-full mb-1.5" style="background-color: rgba(230, 0, 18, 0.22); color: #FF6B76;">
+            <span>●</span><span>KT 공식 파트너 · AX영업팀</span>
+          </div>
+          <h2 class="text-sm sm:text-base font-extrabold tracking-tight">매장 본설치 · 설치사례 현장 관리</h2>
+          <p class="text-[11px] text-gray-300 mt-0.5">누락 없는 체크리스트와 고화질 설치 사례 수집을 한 번에</p>
+        </div>
+        <div class="hidden sm:flex flex-col items-end shrink-0 text-right">
+          <span class="text-[11px] text-gray-400">표준 공정</span>
+          <span class="text-xs font-bold text-white">청약 → 사전점검 → 본설치 → 완료</span>
+        </div>
+      </div>
+
+      <!-- Month & Quick Filter Bar -->
+      <div class="card p-4 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <label for="monthFilter" class="text-xs font-semibold" style="color: var(--text-secondary);">당월 기준(J열 개통일)</label>
+            <input id="monthFilter" type="month" class="px-2.5 py-1.5 rounded-xl border text-sm font-semibold bg-transparent" style="border-color: var(--border-color); color: var(--text-primary);" />
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button data-open-filter="ALL" class="open-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold">전체</button>
+            <button data-open-filter="예정" class="open-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold">예정</button>
+            <button data-open-filter="완료" class="open-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold">완료</button>
+          </div>
+        </div>
+
+        <!-- KPI Summary Grid -->
+        <div class="grid grid-cols-4 gap-2">
+          <div class="sub-card p-2.5 text-center">
+            <div class="text-[11px] font-medium" style="color: var(--text-muted);">당월 전체</div>
+            <div id="kpiTotal" class="text-lg font-extrabold mt-0.5">0</div>
+          </div>
+          <div class="sub-card p-2.5 text-center">
+            <div class="text-[11px] font-medium" style="color: var(--text-muted);">개통 예정</div>
+            <div id="kpiPlanned" class="text-lg font-extrabold mt-0.5 text-amber-500">0</div>
+          </div>
+          <div class="sub-card p-2.5 text-center">
+            <div class="text-[11px] font-medium" style="color: var(--text-muted);">개통 완료</div>
+            <div id="kpiOpened" class="text-lg font-extrabold mt-0.5 text-[#E60012] dark:text-[#FF4D58]">0</div>
+          </div>
+          <div class="sub-card p-2.5 text-center">
+            <div class="text-[11px] font-medium" style="color: var(--text-muted);">최종 완료</div>
+            <div id="kpiDone" class="text-lg font-extrabold mt-0.5 text-[#00A88F]">0</div>
+          </div>
+        </div>
+
+        <!-- Search Input -->
+        <div class="relative">
+          <input id="searchInput" type="text" placeholder="고객명, 주소, 담당자, 포스 검색..." class="w-full pl-9 pr-3 py-2.5 rounded-xl border text-sm bg-transparent" style="border-color: var(--border-color); color: var(--text-primary);" />
+          <svg class="w-4 h-4 absolute left-3 top-3" style="color: var(--text-muted);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+        </div>
+      </div>
+
+      <!-- 4-Stage Pipeline Tabs -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1" id="stageTabs">
+        <button data-stage="ALL" class="stage-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold"></button>
+        <button data-stage="청약 접수" class="stage-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold"></button>
+        <button data-stage="사전 점검일 지정" class="stage-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold"></button>
+        <button data-stage="본설치일 지정" class="stage-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold"></button>
+        <button data-stage="최종 완료" class="stage-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold"></button>
+      </div>
+
+      <!-- Customer Cards List -->
+      <div id="customerList" class="space-y-3"></div>
+    </section>
+
+    <!-- DETAIL VIEW -->
+    <section id="viewDetail" class="hidden space-y-4 animate-in">
+      <!-- Top Summary Card (Synced from 개통처리부) -->
+      <div class="card p-4 space-y-3">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 id="detailName" class="text-lg font-extrabold"></h2>
+              <span id="detailOpenBadge" class="px-2 py-0.5 rounded-full text-[11px] font-bold"></span>
+              <span id="detailStageBadge" class="px-2 py-0.5 rounded-full text-[11px] font-bold"></span>
+            </div>
+            <p id="detailSubMeta" class="text-xs mt-1" style="color: var(--text-muted);"></p>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-[11px]" style="color: var(--text-muted);">수량</div>
+            <div id="detailQty" class="text-base font-extrabold text-[#E60012] dark:text-[#FF4D58]"></div>
+          </div>
+        </div>
+
+        <!-- Stage Stepper -->
+        <div class="grid grid-cols-4 gap-1.5 pt-1" id="detailStageStepper"></div>
+      </div>
+
+      <!-- Detail Sub-Tabs -->
+      <div class="grid grid-cols-3 gap-1.5 p-1 rounded-2xl border" style="background-color: var(--bg-card); border-color: var(--border-color);">
+        <button data-dtab="info" class="dtab-btn py-2.5 rounded-xl text-xs font-bold">📋 기본 · 공정</button>
+        <button data-dtab="precheck" class="dtab-btn py-2.5 rounded-xl text-xs font-bold">🔍 사전 점검</button>
+        <button data-dtab="install" class="dtab-btn py-2.5 rounded-xl text-xs font-bold">🛠️ 본설치 · 촬영</button>
+      </div>
+
+      <!-- TAB A: 기본정보 & 공정관리 -->
+      <div id="dtab-info" class="card p-4 space-y-3.5">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color: var(--text-secondary);">사전 점검일</label>
+            <input id="fPreCheckDate" type="date" class="w-full px-3 py-2 rounded-xl border text-sm bg-transparent" style="border-color: var(--border-color);" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color: var(--text-secondary);">본설치일</label>
+            <input id="fMainInstallDate" type="date" class="w-full px-3 py-2 rounded-xl border text-sm bg-transparent" style="border-color: var(--border-color);" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color: var(--text-secondary);">상품명</label>
+            <select id="fProductName" class="w-full px-3 py-2 rounded-xl border text-sm bg-transparent" style="border-color: var(--border-color);">
+              <option value="KT 하이오더1">KT 하이오더1</option>
+              <option value="KT 하이오더2">KT 하이오더2</option>
+              <option value="KT 하이오더 + 알림판">KT 하이오더 + 알림판</option>
+              <option value="KT 하이오더 + 서빙로봇">KT 하이오더 + 서빙로봇</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color: var(--text-secondary);">선/후불</label>
+            <select id="fPayType" class="w-full px-3 py-2 rounded-xl border text-sm bg-transparent" style="border-color: var(--border-color);">
+              <option value="후불형">후불형</option>
+              <option value="선불형">선불형</option>
+              <option value="선·후불 혼합">선·후불 혼합</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color: var(--text-secondary);">거치대</label>
+            <input id="fMountType" type="text" placeholder="예: 스탠드형 12, 탁상형 2" class="w-full px-3 py-2 rounded-xl border text-sm bg-transparent" style="border-color: var(--border-color);" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color: var(--text-secondary);">보조배터리 구성</label>
+            <input id="fBatteryConfig" type="text" placeholder="예: 보조배터리 10개 / 상시 4개" class="w-full px-3 py-2 rounded-xl border text-sm bg-transparent" style="border-color: var(--border-color);" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color: var(--text-secondary);">포스 프로그램</label>
+            <input id="fPosProgram" type="text" placeholder="예: 오케이포스, 토스포스, 아이샵케어" class="w-full px-3 py-2 rounded-xl border text-sm bg-transparent" style="border-color: var(--border-color);" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color: var(--text-secondary);">영업 담당자</label>
+            <input id="fSalesRep" type="text" placeholder="예: 임정환" class="w-full px-3 py-2 rounded-xl border text-sm bg-transparent" style="border-color: var(--border-color);" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color: var(--text-secondary);">고객 연락처</label>
+          <div class="flex gap-2">
+            <input id="fPhone" type="tel" placeholder="010-0000-0000" class="flex-1 px-3 py-2 rounded-xl border text-sm bg-transparent" style="border-color: var(--border-color);" />
+            <a id="btnCallCustomer" href="#" class="tap-btn px-3.5 py-2 rounded-xl text-xs font-bold flex items-center" style="background-color: var(--accent-soft); color: var(--accent);">전화걸기</a>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color: var(--text-secondary);">설치 주소</label>
+          <input id="fAddress" type="text" placeholder="매장 상세 주소를 입력하세요" class="w-full px-3 py-2 rounded-xl border text-sm bg-transparent" style="border-color: var(--border-color);" />
+        </div>
+
+        <button id="btnSaveInfo" class="tap-btn w-full py-3 rounded-xl font-bold text-white text-sm" style="background-color: var(--accent);">
+          공정 · 매장 정보 저장
+        </button>
+      </div>
+
+      <!-- TAB B: 사전 점검 체크리스트 -->
+      <div id="dtab-precheck" class="hidden space-y-3">
+        <div class="card p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold">사전 점검 현장 체크리스트</h3>
+              <p id="preCheckCount" class="text-xs mt-0.5" style="color: var(--text-muted);">0 / 8 완료</p>
+            </div>
+            <button id="btnPreCheckAll" class="tap-btn px-3 py-1.5 rounded-xl text-xs font-semibold" style="background-color: var(--accent-soft); color: var(--accent);">전체 체크</button>
+          </div>
+          <div class="w-full h-2 rounded-full overflow-hidden" style="background-color: var(--bg-sub);">
+            <div id="preCheckBar" class="h-full bg-[#E60012] transition-all duration-300" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div id="preCheckContainer" class="space-y-3"></div>
+
+        <div class="card p-4 space-y-2">
+          <label class="block text-xs font-semibold" style="color: var(--text-secondary);">사전 점검 특이사항 메모</label>
+          <textarea id="fPreCheckMemo" rows="3" placeholder="테이블 두께, 콘센트 위치, 메뉴 특이사항 등을 기록하세요" class="w-full px-3 py-2 rounded-xl border text-sm bg-transparent" style="border-color: var(--border-color);"></textarea>
+          <button id="btnSavePreCheck" class="tap-btn w-full py-2.5 rounded-xl font-bold text-white text-sm" style="background-color: var(--accent);">사전 점검 저장</button>
+        </div>
+      </div>
+
+      <!-- TAB C: 본설치 현장 체크리스트 & 촬영 -->
+      <div id="dtab-install" class="hidden space-y-3">
+        <div class="card p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold">본설치 현장 체크리스트 (순서대로 진행)</h3>
+              <p id="mainCheckCount" class="text-xs mt-0.5" style="color: var(--text-muted);">0 / 18 완료</p>
+            </div>
+            <span id="mainCheckBadge" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700">진행중</span>
+          </div>
+          <div class="w-full h-2 rounded-full overflow-hidden" style="background-color: var(--bg-sub);">
+            <div id="mainCheckBar" class="h-full bg-[#00A88F] transition-all duration-300" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- 5-Step Checklist -->
+        <div id="mainCheckContainer" class="space-y-3"></div>
+
+        <!-- Photo & Video Capture Section -->
+        <div class="card p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold">📸 설치 사례 사진 · 영상 촬영</h3>
+              <p id="mediaCountText" class="text-xs mt-0.5" style="color: var(--text-muted);">필수 6컷 중 0컷 완료 · 원본 구글 드라이브 저장</p>
+            </div>
+            <label class="tap-btn cursor-pointer px-3 py-1.5 rounded-xl text-xs font-bold" style="background-color: var(--accent-soft); color: var(--accent);">
+              + 추가 촬영
+              <input id="extraMediaInput" type="file" accept="image/*,video/*" multiple class="hidden" />
+            </label>
+          </div>
+
+          <div id="mediaSlotsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+          <div id="extraMediaContainer" class="space-y-2"></div>
+        </div>
+
+        <!-- Complete Installation CTA -->
+        <div class="card p-4 space-y-2.5">
+          <label class="block text-xs font-semibold" style="color: var(--text-secondary);">본설치 현장 메모</label>
+          <textarea id="fMainMemo" rows="2" placeholder="교육 대상자(점주/매니저), 특이사항 등" class="w-full px-3 py-2 rounded-xl border text-sm bg-transparent" style="border-color: var(--border-color);"></textarea>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btnSaveInstall" class="tap-btn py-3 rounded-xl font-bold text-sm border" style="border-color: var(--border-color); color: var(--text-primary);">임시 저장</button>
+            <button id="btnFinishInstall" class="tap-btn py-3 rounded-xl font-bold text-sm text-white bg-[#00A88F]">최종 완료 처리</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Settings / GAS Connection Modal -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="card w-full sm:max-w-md p-5 rounded-t-3xl sm:rounded-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold">구글 시트 · 드라이브 연동 설정</h3>
+        <button id="btnCloseSettings" class="p-1.5 rounded-lg text-sm" style="color: var(--text-muted);">✕</button>
+      </div>
+      <div class="space-y-3 text-xs" style="color: var(--text-secondary);">
+        <p class="leading-relaxed">배포한 Google Apps Script 웹앱 URL을 입력하면 <strong>AX경영계기판(개통처리부)</strong> 당월 데이터와 <strong>구글 드라이브 원본 업로드</strong>가 실시간 연동됩니다.</p>
+        <div>
+          <label class="block font-semibold mb-1">Apps Script 웹앱 URL</label>
+          <input id="gasUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2.5 rounded-xl border text-xs bg-transparent" style="border-color: var(--border-color); color: var(--text-primary);" />
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">현재 작업자 이름</label>
+          <select id="workerNameSelect" class="w-full px-3 py-2.5 rounded-xl border text-xs bg-transparent" style="border-color: var(--border-color); color: var(--text-primary);">
+            <option value="임훈">임훈 (팀장)</option>
+            <option value="임정환">임정환 (영업 담당)</option>
+            <option value="맹윤희">맹윤희 (영업관리)</option>
+            <option value="최서영">최서영 (마케팅)</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap-2 pt-1">
+        <button id="btnResetDemo" class="tap-btn flex-1 py-2.5 rounded-xl text-xs font-bold border" style="border-color: var(--border-color);">데모 모드 전환</button>
+        <button id="btnSaveSettings" class="tap-btn flex-1 py-2.5 rounded-xl text-xs font-bold text-white" style="background-color: var(--accent);">연동 저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Media Preview Lightbox Modal -->
+  <div id="previewModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div class="card w-full max-w-lg p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <h4 id="previewTitle" class="text-sm font-bold truncate">미리보기</h4>
+        <button id="btnClosePreview" class="p-1 text-sm" style="color: var(--text-muted);">✕</button>
+      </div>
+      <div id="previewBody" class="rounded-xl overflow-hidden bg-black/10 flex items-center justify-center max-h-[65vh]"></div>
+      <div class="flex items-center justify-between gap-2">
+        <a id="previewDriveLink" href="#" target="_blank" rel="noopener" class="text-xs font-semibold text-[#E60012] dark:text-[#FF4D58] underline">구글 드라이브 원본 열기 ↗</a>
+        <button id="btnDeletePreviewMedia" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500/10 text-rose-500">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-page Confirmation Modal (No native confirm) -->
+  <div id="confirmModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+    <div class="card w-full max-w-sm p-5 space-y-4">
+      <h4 id="confirmTitle" class="text-base font-bold">확인</h4>
+      <p id="confirmMessage" class="text-xs leading-relaxed" style="color: var(--text-secondary);"></p>
+      <div class="flex gap-2">
+        <button id="btnConfirmCancel" class="tap-btn flex-1 py-2.5 rounded-xl text-xs font-bold border" style="border-color: var(--border-color);">취소</button>
+        <button id="btnConfirmOk" class="tap-btn flex-1 py-2.5 rounded-xl text-xs font-bold text-white" style="background-color: var(--accent);">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full text-xs font-semibold text-white bg-gray-900/90 shadow-lg"></div>
+
+  <script>
+    // ====== CONSTANTS & CHECKLIST DEFINITIONS ======
+    const STAGES = ['청약 접수', '사전 점검일 지정', '본설치일 지정', '최종 완료'];
+
+    const PRE_CHECK_GROUPS = [
+      {
+        title: '1. 현장 환경 · 하드웨어 점검',
+        items: [
+          { id: 'pre_net', label: '인터넷 통신사 / 속도 체크' },
+          { id: 'pre_table', label: '테이블 두께 체크' },
+          { id: 'pre_mount', label: '거치대 종류 및 수량 재확인' },
+          { id: 'pre_power', label: '전기 콘센트와 하이오더 설치 위치 거리 확인 (전기형만 해당)' }
+        ]
+      },
+      {
+        title: '2. 메뉴 · 포스 사전 확인',
+        items: [
+          { id: 'pre_drink', label: '음료, 주류 세분화' },
+          { id: 'pre_posmenu', label: '포스에 등록된 메뉴명 확인' },
+          { id: 'pre_option', label: '옵션 구성 확인' },
+          { id: 'pre_timemenu', label: '시간대 / 요일별 운영 메뉴 확인' }
+        ]
+      }
+    ];
+
+    const MAIN_CHECK_GROUPS = [
+      {
+        title: '1. 메뉴 설정',
+        items: [
+          { id: 'm_photo', label: '메뉴 사진 확인' },
+          { id: 'm_skin', label: '스킨, 카테고리, 노출 순서 확인' },
+          { id: 'm_opt', label: '옵션 및 메뉴 설명 (맵기, 소중대, best)' },
+          { id: 'm_set', label: '세트메뉴, 추천메뉴 확인' },
+          { id: 'm_drink', label: '음료, 주류 POS 세분화 체크' }
+        ]
+      },
+      {
+        title: '2. 매니저 세팅값 점검',
+        items: [
+          { id: 's_auto', label: '전기형 (자동 on/off 스케줄 설정)' },
+          { id: 's_call', label: '직원 호출 항목 확인' },
+          { id: 's_banner', label: '배너 설정 (와이파이, 리뷰, 이벤트, 안내사항 등)' },
+          { id: 's_origin', label: '원산지 등록' }
+        ]
+      },
+      {
+        title: '3. 네트워크 인프라 점검',
+        items: [
+          { id: 'n_router', label: '공유기 위치 설정 (카운터 아래 X)' },
+          { id: 'n_deadzone', label: '와이파이 사각지대 확인' }
+        ]
+      },
+      {
+        title: '4. 시스템 연동 점검',
+        items: [
+          { id: 'i_test', label: '포스, 하이오더, 프린트 연동 테스트' },
+          { id: 'i_kitchen', label: '주방 프린트 정상 출력 확인' },
+          { id: 'i_table', label: '테이블 번호 일치 여부 확인' },
+          { id: 'i_prepay', label: '선불형 카드 결제 승인 확인' }
+        ]
+      },
+      {
+        title: '5. 사용법 교육',
+        items: [
+          { id: 'e_manager', label: '하이오더 매니저 사용법 교육' },
+          { id: 'e_as', label: 'AS요청 및 전담센터 채널 추가' },
+          { id: 'e_battery', label: '배터리 충전 및 탈착 방법 교육' }
+        ]
+      }
+    ];
+
+    const REQUIRED_MEDIA_SLOTS = [
+      { id: 'shot_ext', label: '매장 외관', type: 'image', hint: '간판 + 출입구 전경' },
+      { id: 'shot_hall', label: '테이블 전체 전경', type: 'image', hint: '홀 전체 배치 한눈에' },
+      { id: 'shot_unit', label: '하이오더 단말기 근접샷', type: 'image', hint: '메뉴 화면 선명하게' },
+      { id: 'shot_noti', label: '알림판 활용 장면', type: 'image', hint: '카운터/주방 알림판' },
+      { id: 'shot_pos', label: '포스 연동', type: 'image', hint: '포스기 주문 수신 화면' },
+      { id: 'shot_video', label: '실제 주문/결제 영상', type: 'video', hint: '터치→주문/결제 10초 내외' }
+    ];
+
+    const SAMPLE_DATA = [
+      {
+        rowKey: 'sample-1',
+        customerName: '등촌샤브칼국수 청계산점',
+        subscriptionDate: '2026-11-04',
+        installDate: '2026-11-18',
+        quantity: 19,
+        openStatus: '예정',
+        stage: '본설치일 지정',
+        preCheckDate: '2026-11-12',
+        mainInstallDate: '2026-11-18',
+        productName: 'KT 하이오더2',
+        payType: '후불형',
+        mountType: '스탠드형 19',
+        batteryConfig: '보조배터리 19개',
+        posProgram: '오케이포스',
+        address: '서울 서초구 원터2길 5 1층',
+        phone: '010-3829-1104',
+        salesRep: '임정환',
+        preChecklist: { pre_net: true, pre_table: true, pre_mount: true, pre_power: true, pre_drink: true, pre_posmenu: true, pre_option: true, pre_timemenu: false },
+        preMemo: '홀 중앙 테이블 전기 배선 불가, 보조배터리 100% 구성 확인 완료.',
+        mainChecklist: { m_photo: true, m_skin: true },
+        mainMemo: '',
+        media: []
+      },
+      {
+        rowKey: 'sample-2',
+        customerName: '팔각도 노량진역점',
+        subscriptionDate: '2026-11-02',
+        installDate: '2026-11-12',
+        quantity: 14,
+        openStatus: '완료',
+        stage: '최종 완료',
+        preCheckDate: '2026-11-07',
+        mainInstallDate: '2026-11-12',
+        productName: 'KT 하이오더 + 알림판',
+        payType: '선불형',
+        mountType: '스탠드형 12, 탁상형 2',
+        batteryConfig: '상시전원 14개',
+        posProgram: '토스포스',
+        address: '서울 동작구 노량진로 146 1층',
+        phone: '010-7741-5520',
+        salesRep: '임훈',
+        preChecklist: { pre_net: true, pre_table: true, pre_mount: true, pre_power: true, pre_drink: true, pre_posmenu: true, pre_option: true, pre_timemenu: true },
+        preMemo: '선불형 카드리더기 일체형 거치대 확인.',
+        mainChecklist: MAIN_CHECK_GROUPS.flatMap(g => g.items).reduce((acc, it) => ({ ...acc, [it.id]: true }), {}),
+        mainMemo: '점주님 및 홀 매니저 2인 교육 완료. 18일 오픈 예정.',
+        media: [
+          { id: 'm1', category: 'shot_ext', fileName: '팔각도_외관.jpg', mimeType: 'image/jpeg', url: '', dataUrl: '', uploadedAt: '2026-11-12 15:20' },
+          { id: 'm2', category: 'shot_hall', fileName: '팔각도_전경.jpg', mimeType: 'image/jpeg', url: '', dataUrl: '', uploadedAt: '2026-11-12 15:22' }
+        ]
+      },
+      {
+        rowKey: 'sample-3',
+        customerName: '88기사식당 부평본점',
+        subscriptionDate: '2026-11-11',
+        installDate: '2026-11-24',
+        quantity: 22,
+        openStatus: '예정',
+        stage: '사전 점검일 지정',
+        preCheckDate: '2026-11-19',
+        mainInstallDate: '',
+        productName: 'KT 하이오더1',
+        payType: '선불형',
+        mountType: '스탠드형 22',
+        batteryConfig: '보조배터리 22개',
+        posProgram: '아이샵케어',
+        address: '인천 부평구 대정로 7',
+        phone: '010-5566-3327',
+        salesRep: '임정환',
+        preChecklist: {},
+        preMemo: '',
+        mainChecklist: {},
+        mainMemo: '',
+        media: []
+      },
+      {
+        rowKey: 'sample-4',
+        customerName: '도리신닭도리탕 송도점',
+        subscriptionDate: '2026-11-14',
+        installDate: '2026-11-28',
+        quantity: 12,
+        openStatus: '예정',
+        stage: '청약 접수',
+        preCheckDate: '',
+        mainInstallDate: '',
+        productName: 'KT 하이오더2',
+        payType: '후불형',
+        mountType: '',
+        batteryConfig: '',
+        posProgram: '',
+        address: '인천 연수구 컨벤시아대로 165',
+        phone: '010-9120-4488',
+        salesRep: '임훈',
+        preChecklist: {},
+        preMemo: '',
+        mainChecklist: {},
+        mainMemo: '',
+        media: []
+      }
+    ];
+
+    // ====== STATE ======
+    const state = {
+      gasUrl: '',
+      workerName: '임훈',
+      month: '2026-11',
+      stageFilter: 'ALL',
+      openFilter: 'ALL',
+      search: '',
+      customers: [],
+      selectedRowKey: null,
+      detailTab: 'info',
+      darkMode: false,
+      previewMediaId: null
+    };
+
+    // ====== SAFE STORAGE HELPERS ======
+    function getStorage(key, fallback = '') {
+      try { return localStorage.getItem(key) || fallback; } catch { return fallback; }
+    }
+    function setStorage(key, val) {
+      try { localStorage.setItem(key, val); } catch {}
+    }
+
+    // ====== INIT ======
+    function init() {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      state.month = getStorage('ho_month', `${yyyy}-${mm}`);
+      state.gasUrl = getStorage('ho_gas_url', '');
+      state.workerName = getStorage('ho_worker', '임훈');
+      state.darkMode = getStorage('ho_dark', '0') === '1';
+
+      if (state.darkMode) document.documentElement.classList.add('dark');
+      document.getElementById('darkIcon').textContent = state.darkMode ? '☀️' : '🌙';
+      document.getElementById('monthFilter').value = state.month;
+      document.getElementById('gasUrlInput').value = state.gasUrl;
+      document.getElementById('workerNameSelect').value = state.workerName;
+
+      bindEvents();
+      loadData();
+    }
+
+    // ====== DATA LOADING (GAS or Demo Fallback) ======
+    async function loadData() {
+      // Check if running inside Google Apps Script HtmlService
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        updateSyncBadge('loading', '시트 데이터 불러오는 중...');
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.ok) {
+              state.customers = res.customers || [];
+              updateSyncBadge('ok', '시트 실시간 연동됨');
+            } else {
+              loadLocalOrSample();
+            }
+            renderAll();
+          })
+          .withFailureHandler(() => {
+            loadLocalOrSample();
+            renderAll();
+          })
+          .getDashboardData(state.month);
+        return;
+      }
+
+      // Check if external GAS Web App URL is configured
+      if (state.gasUrl) {
+        updateSyncBadge('loading', '구글 시트 동기화 중...');
+        try {
+          const resp = await fetch(state.gasUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'getDashboard', month: state.month })
+          });
+          const res = await resp.json();
+          if (res && res.ok) {
+            state.customers = res.customers || [];
+            updateSyncBadge('ok', `시트 연동됨 (${state.customers.length}건)`);
+            renderAll();
+            return;
+          }
+        } catch (err) {
+          showToast('시트 연동 실패: 데모 데이터로 표시합니다.');
+        }
+      }
+
+      loadLocalOrSample();
+      renderAll();
+    }
+
+    function loadLocalOrSample() {
+      const saved = getStorage('ho_demo_customers');
+      if (saved) {
+        try {
+          state.customers = JSON.parse(saved);
+          updateSyncBadge('demo', '데모 모드 (로컬 저장됨)');
+          return;
+        } catch {}
+      }
+      state.customers = JSON.parse(JSON.stringify(SAMPLE_DATA));
+      updateSyncBadge('demo', '데모 모드 (샘플 데이터)');
+    }
+
+    function saveLocalDemo() {
+      if (!state.gasUrl && typeof google === 'undefined') {
+        setStorage('ho_demo_customers', JSON.stringify(state.customers));
+      }
+    }
+
+    function updateSyncBadge(mode, text) {
+      const dot = document.getElementById('syncStatusDot');
+      const txt = document.getElementById('syncStatusText');
+      txt.textContent = text;
+      dot.className = 'w-2 h-2 rounded-full inline-block ' + (
+        mode === 'ok' ? 'bg-[#00A88F]' : mode === 'loading' ? 'bg-[#E60012] animate-pulse' : 'bg-amber-400'
+      );
+    }
+
+    // ====== PERSIST CUSTOMER TO BACKEND ======
+    async function persistCustomer(customer) {
+      saveLocalDemo();
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(() => showToast('구글 시트에 저장되었습니다.'))
+          .withFailureHandler(() => showToast('시트 저장 중 오류가 발생했습니다.'))
+          .saveCustomerData(customer, state.workerName);
+        return;
+      }
+
+      if (state.gasUrl) {
+        try {
+          const resp = await fetch(state.gasUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'saveCustomer', customer, workerName: state.workerName })
+          });
+          const res = await resp.json();
+          if (res && res.ok) {
+            showToast('구글 시트에 저장되었습니다.');
+            return;
+          }
+        } catch {}
+      }
+      showToast('저장되었습니다.');
+    }
+
+    // ====== RENDERING ======
+    function renderAll() {
+      renderListView();
+      if (state.selectedRowKey) {
+        renderDetailView();
+      }
+    }
+
+    function getFilteredCustomers() {
+      return state.customers.filter(c => {
+        if (state.month && c.installDate && !c.installDate.startsWith(state.month)) return false;
+        if (state.openFilter !== 'ALL' && c.openStatus !== state.openFilter) return false;
+        if (state.stageFilter !== 'ALL' && c.stage !== state.stageFilter) return false;
+        if (state.search.trim()) {
+          const q = state.search.trim().toLowerCase();
+          const hay = `${c.customerName} ${c.address} ${c.salesRep} ${c.posProgram} ${c.productName}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderListView() {
+      const monthRows = state.customers.filter(c => !state.month || !c.installDate || c.installDate.startsWith(state.month));
+      document.getElementById('kpiTotal').textContent = monthRows.length;
+      document.getElementById('kpiPlanned').textContent = monthRows.filter(c => c.openStatus === '예정').length;
+      document.getElementById('kpiOpened').textContent = monthRows.filter(c => c.openStatus === '완료').length;
+      document.getElementById('kpiDone').textContent = monthRows.filter(c => c.stage === '최종 완료').length;
+
+      // Open filter buttons
+      document.querySelectorAll('.open-filter-btn').forEach(btn => {
+        const active = btn.dataset.openFilter === state.openFilter;
+        btn.style.backgroundColor = active ? 'var(--accent)' : 'var(--bg-sub)';
+        btn.style.color = active ? '#FFFFFF' : 'var(--text-secondary)';
+      });
+
+      // Stage tabs
+      document.querySelectorAll('.stage-tab').forEach(tab => {
+        const st = tab.dataset.stage;
+        const count = st === 'ALL' ? monthRows.length : monthRows.filter(c => c.stage === st).length;
+        tab.textContent = `${st === 'ALL' ? '전체' : st} (${count})`;
+        const active = st === state.stageFilter;
+        tab.style.backgroundColor = active ? 'var(--accent)' : 'var(--bg-card)';
+        tab.style.color = active ? '#FFFFFF' : 'var(--text-secondary)';
+        tab.style.border = active ? '1px solid var(--accent)' : '1px solid var(--border-color)';
+      });
+
+      const listEl = document.getElementById('customerList');
+      const items = getFilteredCustomers();
+      if (!items.length) {
+        listEl.innerHTML = `<div class="card p-8 text-center text-sm" style="color: var(--text-muted);">조건에 해당하는 당월 개통 고객이 없습니다.</div>`;
+        return;
+      }
+
+      const mainTotal = MAIN_CHECK_GROUPS.reduce((s, g) => s + g.items.length, 0);
+
+      listEl.innerHTML = items.map(c => {
+        const mainDone = Object.values(c.mainChecklist || {}).filter(Boolean).length;
+        const pct = Math.round((mainDone / mainTotal) * 100);
+        const mediaDone = REQUIRED_MEDIA_SLOTS.filter(s => (c.media || []).some(m => m.category === s.id)).length;
+        const openBadgeClass = c.openStatus === '완료'
+          ? 'bg-[#00A88F]/15 text-emerald-600 dark:text-emerald-400'
+          : 'bg-amber-500/15 text-amber-600 dark:text-amber-400';
+
+        return `
+          <article data-row="${c.rowKey}" class="customer-card card p-4 space-y-2.5 cursor-pointer tap-btn hover:border-[#E60012]/50">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <h3 class="text-base font-bold truncate">${escapeHtml(c.customerName)}</h3>
+                  <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${openBadgeClass}">개통 ${escapeHtml(c.openStatus || '예정')}</span>
+                </div>
+                <p class="text-xs mt-0.5 truncate" style="color: var(--text-muted);">
+                  ${escapeHtml(c.address || '설치 주소 미입력')}
+                </p>
+              </div>
+              <span class="shrink-0 px-2.5 py-1 rounded-xl text-[11px] font-bold" style="background-color: var(--accent-soft); color: var(--accent);">
+                ${escapeHtml(c.stage || '청약 접수')}
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1.5 text-xs pt-1" style="color: var(--text-secondary);">
+              <div><span style="color: var(--text-muted);">상품:</span> <strong>${escapeHtml(c.productName || '-')}</strong> (${c.quantity || 0}대)</div>
+              <div><span style="color: var(--text-muted);">결제:</span> ${escapeHtml(c.payType || '-')}</div>
+              <div><span style="color: var(--text-muted);">포스:</span> ${escapeHtml(c.posProgram || '-')}</div>
+              <div><span style="color: var(--text-muted);">거치대:</span> ${escapeHtml(c.mountType || '-')}</div>
+              <div><span style="color: var(--text-muted);">배터리:</span> ${escapeHtml(c.batteryConfig || '-')}</div>
+              <div><span style="color: var(--text-muted);">담당:</span> ${escapeHtml(c.salesRep || '-')}</div>
+            </div>
+
+            <div class="flex items-center justify-between gap-3 pt-1.5 border-t text-[11px]" style="border-color: var(--border-color); color: var(--text-muted);">
+              <span>청약 ${escapeHtml(c.subscriptionDate || '-')} · 개통 ${escapeHtml(c.installDate || '-')}</span>
+              <span>현장체크 ${pct}% · 촬영 ${mediaDone}/6</span>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function openDetail(rowKey) {
+      state.selectedRowKey = rowKey;
+      document.getElementById('viewList').classList.add('hidden');
+      document.getElementById('viewDetail').classList.remove('hidden');
+      document.getElementById('btnBackToList').classList.remove('hidden');
+      renderDetailView();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function closeDetail() {
+      state.selectedRowKey = null;
+      document.getElementById('viewDetail').classList.add('hidden');
+      document.getElementById('viewList').classList.remove('hidden');
+      document.getElementById('btnBackToList').classList.add('hidden');
+      document.getElementById('headerTitle').textContent = '하이오더 현장 · 공정 관리';
+      renderListView();
+    }
+
+    function getCurrentCustomer() {
+      return state.customers.find(c => c.rowKey === state.selectedRowKey);
+    }
+
+    function renderDetailView() {
+      const c = getCurrentCustomer();
+      if (!c) return;
+
+      document.getElementById('headerTitle').textContent = c.customerName;
+      document.getElementById('detailName').textContent = c.customerName;
+      document.getElementById('detailQty').textContent = `${c.quantity || 0}대`;
+      document.getElementById('detailSubMeta').textContent = `청약일 ${c.subscriptionDate || '-'} · J열 개통일 ${c.installDate || '-'}`;
+
+      const openBadge = document.getElementById('detailOpenBadge');
+      openBadge.textContent = `개통 ${c.openStatus || '예정'}`;
+      openBadge.className = 'px-2 py-0.5 rounded-full text-[11px] font-bold ' + (
+        c.openStatus === '완료' ? 'bg-[#00A88F]/15 text-emerald-600' : 'bg-amber-500/15 text-amber-600'
+      );
+
+      const stageBadge = document.getElementById('detailStageBadge');
+      stageBadge.textContent = c.stage || '청약 접수';
+      stageBadge.style.backgroundColor = 'var(--accent-soft)';
+      stageBadge.style.color = 'var(--accent)';
+
+      // Stage stepper
+      const stepper = document.getElementById('detailStageStepper');
+      const curIdx = STAGES.indexOf(c.stage || '청약 접수');
+      stepper.innerHTML = STAGES.map((st, idx) => {
+        const active = idx <= curIdx;
+        return `
+          <button data-set-stage="${st}" class="stage-step-btn tap-btn py-2 px-1 rounded-xl text-[11px] font-bold text-center truncate"
+            style="background-color: ${idx === curIdx ? 'var(--accent)' : active ? 'var(--accent-soft)' : 'var(--bg-sub)'};
+                   color: ${idx === curIdx ? '#FFFFFF' : active ? 'var(--accent)' : 'var(--text-muted)'};">
+            ${st}
+          </button>
+        `;
+      }).join('');
+
+      // Detail sub-tabs
+      document.querySelectorAll('.dtab-btn').forEach(btn => {
+        const active = btn.dataset.dtab === state.detailTab;
+        btn.style.backgroundColor = active ? 'var(--accent)' : 'transparent';
+        btn.style.color = active ? '#FFFFFF' : 'var(--text-secondary)';
+      });
+      ['info', 'precheck', 'install'].forEach(t => {
+        document.getElementById(`dtab-${t}`).classList.toggle('hidden', t !== state.detailTab);
+      });
+
+      // Populate Info Form
+      document.getElementById('fPreCheckDate').value = c.preCheckDate || '';
+      document.getElementById('fMainInstallDate').value = c.mainInstallDate || '';
+      document.getElementById('fProductName').value = c.productName || 'KT 하이오더2';
+      document.getElementById('fPayType').value = c.payType || '후불형';
+      document.getElementById('fMountType').value = c.mountType || '';
+      document.getElementById('fBatteryConfig').value = c.batteryConfig || '';
+      document.getElementById('fPosProgram').value = c.posProgram || '';
+      document.getElementById('fSalesRep').value = c.salesRep || '';
+      document.getElementById('fPhone').value = c.phone || '';
+      document.getElementById('btnCallCustomer').href = c.phone ? `tel:${c.phone.replace(/[^0-9+]/g, '')}` : '#';
+      document.getElementById('fAddress').value = c.address || '';
+      document.getElementById('fPreCheckMemo').value = c.preMemo || '';
+      document.getElementById('fMainMemo').value = c.mainMemo || '';
+
+      renderPreChecklist(c);
+      renderMainChecklist(c);
+      renderMediaSlots(c);
+    }
+
+    function renderPreChecklist(c) {
+      const total = PRE_CHECK_GROUPS.reduce((s, g) => s + g.items.length, 0);
+      const checked = PRE_CHECK_GROUPS.reduce((s, g) => s + g.items.filter(it => c.preChecklist?.[it.id]).length, 0);
+      document.getElementById('preCheckCount').textContent = `${checked} / ${total} 완료`;
+      document.getElementById('preCheckBar').style.width = `${Math.round((checked / total) * 100)}%`;
+
+      document.getElementById('preCheckContainer').innerHTML = PRE_CHECK_GROUPS.map(grp => `
+        <div class="card p-4 space-y-2.5">
+          <h4 class="text-xs font-bold" style="color: var(--accent);">${grp.title}</h4>
+          <div class="space-y-2">
+            ${grp.items.map(it => {
+              const isDone = !!c.preChecklist?.[it.id];
+              return `
+                <label class="flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition" style="background-color: var(--bg-sub);">
+                  <input type="checkbox" data-check-type="pre" data-check-id="${it.id}" ${isDone ? 'checked' : ''} class="w-4 h-4 accent-[#E60012] rounded shrink-0" />
+                  <span class="text-xs font-medium ${isDone ? 'line-through opacity-60' : ''}">${it.label}</span>
+                </label>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderMainChecklist(c) {
+      const total = MAIN_CHECK_GROUPS.reduce((s, g) => s + g.items.length, 0);
+      const checked = MAIN_CHECK_GROUPS.reduce((s, g) => s + g.items.filter(it => c.mainChecklist?.[it.id]).length, 0);
+      document.getElementById('mainCheckCount').textContent = `${checked} / ${total} 완료`;
+      document.getElementById('mainCheckBar').style.width = `${Math.round((checked / total) * 100)}%`;
+
+      const badge = document.getElementById('mainCheckBadge');
+      if (checked === total) {
+        badge.textContent = '모든 항목 완료';
+        badge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#00A88F]/15 text-emerald-600';
+      } else {
+        badge.textContent = `${total - checked}개 남음`;
+        badge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-600';
+      }
+
+      document.getElementById('mainCheckContainer').innerHTML = MAIN_CHECK_GROUPS.map(grp => {
+        const gDone = grp.items.filter(it => c.mainChecklist?.[it.id]).length;
+        return `
+          <div class="card p-4 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold" style="color: var(--accent);">${grp.title}</h4>
+              <span class="text-[11px] font-semibold" style="color: var(--text-muted);">${gDone}/${grp.items.length}</span>
+            </div>
+            <div class="space-y-2">
+              ${grp.items.map(it => {
+                const isDone = !!c.mainChecklist?.[it.id];
+                return `
+                  <label class="flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition" style="background-color: var(--bg-sub);">
+                    <input type="checkbox" data-check-type="main" data-check-id="${it.id}" ${isDone ? 'checked' : ''} class="w-4 h-4 accent-[#00A88F] rounded shrink-0" />
+                    <span class="text-xs font-medium ${isDone ? 'line-through opacity-60' : ''}">${it.label}</span>
+                  </label>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderMediaSlots(c) {
+      const media = c.media || [];
+      const doneCount = REQUIRED_MEDIA_SLOTS.filter(s => media.some(m => m.category === s.id)).length;
+      document.getElementById('mediaCountText').textContent = `필수 6컷 중 ${doneCount}컷 완료 · 원본 구글 드라이브 저장`;
+
+      document.getElementById('mediaSlotsContainer').innerHTML = REQUIRED_MEDIA_SLOTS.map(slot => {
+        const slotItems = media.filter(m => m.category === slot.id);
+        const acceptAttr = slot.type === 'video' ? 'video/*' : 'image/*';
+        return `
+          <div class="sub-card p-3 space-y-2">
+            <div class="flex items-center justify-between gap-1">
+              <div class="min-w-0">
+                <div class="text-xs font-bold truncate">${slot.label}</div>
+                <div class="text-[11px] truncate" style="color: var(--text-muted);">${slot.hint}</div>
+              </div>
+              <span class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold ${slotItems.length ? 'bg-[#00A88F]/15 text-emerald-600' : 'bg-gray-500/15 text-gray-500'}">
+                ${slotItems.length ? `${slotItems.length}건 완료` : '미촬영'}
+              </span>
+            </div>
+
+            ${slotItems.length ? `
+              <div class="space-y-1.5 pt-1">
+                ${slotItems.map(item => `
+                  <button data-preview-id="${item.id}" class="preview-media-btn w-full py-1.5 px-2.5 rounded-lg text-xs font-semibold text-left truncate border flex items-center justify-between gap-2" style="border-color: var(--border-color); color: var(--text-primary);">
+                    <span class="truncate">${slot.type === 'video' ? '🎬' : '🖼️'} ${escapeHtml(item.fileName)}</span>
+                    <span class="text-[10px] shrink-0" style="color: var(--text-muted);">보기</span>
+                  </button>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            <label class="tap-btn block w-full py-2 rounded-xl text-center text-xs font-bold cursor-pointer border border-dashed" style="border-color: var(--accent); color: var(--accent);">
+              ${slotItems.length
+                ? (slot.type === 'video' ? '+ 영상 추가 촬영 / 선택' : '+ 사진 추가 촬영 / 선택')
+                : (slot.type === 'video' ? '🎥 영상 촬영 / 선택 (다중 가능)' : '📷 사진 촬영 / 선택 (다중 가능)')}
+              <input type="file" data-slot-id="${slot.id}" accept="${acceptAttr}" multiple class="slot-file-input hidden" />
+            </label>
+          </div>
+        `;
+      }).join('');
+
+      const extras = media.filter(m => m.category === 'extra');
+      document.getElementById('extraMediaContainer').innerHTML = extras.length ? `
+        <div class="pt-1 space-y-1.5">
+          <div class="text-[11px] font-semibold" style="color: var(--text-muted);">추가 촬영 파일 (${extras.length})</div>
+          ${extras.map(m => `
+            <button data-preview-id="${m.id}" class="preview-media-btn w-full py-2 px-3 rounded-xl text-xs font-medium text-left flex items-center justify-between border" style="border-color: var(--border-color);">
+              <span class="truncate">${m.mimeType?.startsWith('video') ? '🎬' : '🖼️'} ${escapeHtml(m.fileName)}</span>
+              <span class="text-[11px]" style="color: var(--text-muted);">보기</span>
+            </button>
+          `).join('')}
+        </div>
+      ` : '';
+    }
+
+    // ====== MEDIA UPLOAD HANDLER ======
+    async function handleFileUpload(file, slotId) {
+      const c = getCurrentCustomer();
+      if (!c || !file) return;
+
+      showToast(`${file.name} 업로드 준비 중...`);
+      const base64Data = await fileToBase64(file);
+      const rawBase64 = base64Data.split(',')[1];
+      const newMedia = {
+        id: 'med_' + Date.now(),
+        category: slotId,
+        fileName: file.name,
+        mimeType: file.type || 'image/jpeg',
+        dataUrl: base64Data,
+        url: '',
+        uploadedAt: new Date().toLocaleString('ko-KR')
+      };
+
+      // Upload to Google Drive via GAS if connected
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.ok && res.mediaItem) {
+              applyMediaItem(c, slotId, res.mediaItem);
+              showToast('구글 드라이브에 원본 저장 완료!');
+            }
+          })
+          .withFailureHandler(() => showToast('드라이브 업로드 실패'))
+          .uploadMediaToDrive({
+            rowKey: c.rowKey,
+            customerName: c.customerName,
+            installDate: c.installDate,
+            category: slotId,
+            fileName: file.name,
+            mimeType: file.type,
+            base64Data: rawBase64
+          });
+        return;
+      }
+
+      if (state.gasUrl) {
+        try {
+          const resp = await fetch(state.gasUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'uploadMedia',
+              rowKey: c.rowKey,
+              customerName: c.customerName,
+              installDate: c.installDate,
+              category: slotId,
+              fileName: file.name,
+              mimeType: file.type,
+              base64Data: rawBase64
+            })
+          });
+          const res = await resp.json();
+          if (res && res.ok && res.mediaItem) {
+            applyMediaItem(c, slotId, res.mediaItem);
+            showToast('구글 드라이브에 원본 저장 완료!');
+            return;
+          }
+        } catch {}
+      }
+
+      // Local preview fallback
+      applyMediaItem(c, slotId, newMedia);
+      saveLocalDemo();
+      showToast('앱에 임시 저장되었습니다. (시트 연동 시 드라이브 자동 저장)');
+    }
+
+    function applyMediaItem(c, slotId, mediaItem) {
+      if (!c.media) c.media = [];
+      c.media.push(mediaItem);
+      renderMediaSlots(c);
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ====== EVENT BINDINGS ======
+    function bindEvents() {
+      document.getElementById('btnBackToList').addEventListener('click', closeDetail);
+
+      document.getElementById('btnDarkToggle').addEventListener('click', () => {
+        state.darkMode = !state.darkMode;
+        document.documentElement.classList.toggle('dark', state.darkMode);
+        document.getElementById('darkIcon').textContent = state.darkMode ? '☀️' : '🌙';
+        setStorage('ho_dark', state.darkMode ? '1' : '0');
+      });
+
+      document.getElementById('btnSyncNow').addEventListener('click', loadData);
+
+      document.getElementById('monthFilter').addEventListener('change', e => {
+        state.month = e.target.value;
+        setStorage('ho_month', state.month);
+        loadData();
+      });
+
+      document.getElementById('searchInput').addEventListener('input', e => {
+        state.search = e.target.value;
+        renderListView();
+      });
+
+      document.querySelectorAll('.open-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.openFilter = btn.dataset.openFilter;
+          renderListView();
+        });
+      });
+
+      document.querySelectorAll('.stage-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          state.stageFilter = tab.dataset.stage;
+          renderListView();
+        });
+      });
+
+      document.getElementById('customerList').addEventListener('click', e => {
+        const card = e.target.closest('.customer-card');
+        if (card) openDetail(card.dataset.row);
+      });
+
+      document.getElementById('detailStageStepper').addEventListener('click', e => {
+        const btn = e.target.closest('.stage-step-btn');
+        if (!btn) return;
+        const c = getCurrentCustomer();
+        if (!c) return;
+        c.stage = btn.dataset.setStage;
+        persistCustomer(c);
+        renderDetailView();
+      });
+
+      document.querySelectorAll('.dtab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.detailTab = btn.dataset.dtab;
+          renderDetailView();
+        });
+      });
+
+      // Save Info Form
+      document.getElementById('btnSaveInfo').addEventListener('click', () => {
+        const c = getCurrentCustomer();
+        if (!c) return;
+        c.preCheckDate = document.getElementById('fPreCheckDate').value;
+        c.mainInstallDate = document.getElementById('fMainInstallDate').value;
+        c.productName = document.getElementById('fProductName').value;
+        c.payType = document.getElementById('fPayType').value;
+        c.mountType = document.getElementById('fMountType').value;
+        c.batteryConfig = document.getElementById('fBatteryConfig').value;
+        c.posProgram = document.getElementById('fPosProgram').value;
+        c.salesRep = document.getElementById('fSalesRep').value;
+        c.phone = document.getElementById('fPhone').value;
+        c.address = document.getElementById('fAddress').value;
+
+        if (c.mainInstallDate && c.stage === '청약 접수') c.stage = '본설치일 지정';
+        else if (c.preCheckDate && c.stage === '청약 접수') c.stage = '사전 점검일 지정';
+
+        persistCustomer(c);
+        renderDetailView();
+      });
+
+      // Pre-check & Main checklist delegation
+      document.getElementById('viewDetail').addEventListener('change', e => {
+        const cb = e.target.closest('input[data-check-type]');
+        if (cb) {
+          const c = getCurrentCustomer();
+          if (!c) return;
+          const targetObj = cb.dataset.checkType === 'pre' ? (c.preChecklist = c.preChecklist || {}) : (c.mainChecklist = c.mainChecklist || {});
+          targetObj[cb.dataset.checkId] = cb.checked;
+          if (cb.dataset.checkType === 'pre') renderPreChecklist(c);
+          else renderMainChecklist(c);
+          saveLocalDemo();
+          return;
+        }
+
+        const fileInput = e.target.closest('.slot-file-input');
+        if (fileInput && fileInput.files.length) {
+          const slotId = fileInput.dataset.slotId;
+          Array.from(fileInput.files).forEach(f => handleFileUpload(f, slotId));
+          fileInput.value = '';
+        }
+      });
+
+      document.getElementById('extraMediaInput').addEventListener('change', e => {
+        if (e.target.files.length) {
+          Array.from(e.target.files).forEach(f => handleFileUpload(f, 'extra'));
+        }
+        e.target.value = '';
+      });
+
+      document.getElementById('btnPreCheckAll').addEventListener('click', () => {
+        const c = getCurrentCustomer();
+        if (!c) return;
+        c.preChecklist = {};
+        PRE_CHECK_GROUPS.forEach(g => g.items.forEach(it => { c.preChecklist[it.id] = true; }));
+        renderPreChecklist(c);
+        saveLocalDemo();
+      });
+
+      document.getElementById('btnSavePreCheck').addEventListener('click', () => {
+        const c = getCurrentCustomer();
+        if (!c) return;
+        c.preMemo = document.getElementById('fPreCheckMemo').value;
+        persistCustomer(c);
+      });
+
+      document.getElementById('btnSaveInstall').addEventListener('click', () => {
+        const c = getCurrentCustomer();
+        if (!c) return;
+        c.mainMemo = document.getElementById('fMainMemo').value;
+        persistCustomer(c);
+      });
+
+      document.getElementById('btnFinishInstall').addEventListener('click', () => {
+        const c = getCurrentCustomer();
+        if (!c) return;
+        c.mainMemo = document.getElementById('fMainMemo').value;
+
+        const mainTotal = MAIN_CHECK_GROUPS.reduce((s, g) => s + g.items.length, 0);
+        const mainDone = Object.values(c.mainChecklist || {}).filter(Boolean).length;
+        const mediaDone = REQUIRED_MEDIA_SLOTS.filter(s => (c.media || []).some(m => m.category === s.id)).length;
+
+        const warnings = [];
+        if (mainDone < mainTotal) warnings.push(`본설치 체크리스트 미완료 (${mainDone}/${mainTotal})`);
+        if (mediaDone < REQUIRED_MEDIA_SLOTS.length) warnings.push(`필수 촬영 미완료 (${mediaDone}/${REQUIRED_MEDIA_SLOTS.length}컷)`);
+
+        const msg = warnings.length
+          ? `아직 완료되지 않은 항목이 있습니다:\n• ${warnings.join('\n• ')}\n\n그래도 '최종 완료'로 변경할까요?`
+          : '모든 체크리스트와 촬영이 완료되었습니다. 최종 완료 처리할까요?';
+
+        openConfirm('본설치 최종 완료', msg, () => {
+          c.stage = '최종 완료';
+          persistCustomer(c);
+          renderDetailView();
+        });
+      });
+
+      // Preview Modal
+      document.getElementById('viewDetail').addEventListener('click', e => {
+        const btn = e.target.closest('.preview-media-btn');
+        if (!btn) return;
+        const c = getCurrentCustomer();
+        const m = (c?.media || []).find(x => x.id === btn.dataset.previewId);
+        if (!m) return;
+        state.previewMediaId = m.id;
+        document.getElementById('previewTitle').textContent = m.fileName;
+        const body = document.getElementById('previewBody');
+        const src = m.dataUrl || m.url;
+        if (!src) {
+          body.innerHTML = `<div class="p-8 text-xs text-center" style="color: var(--text-muted);">샘플 항목입니다. 실제 촬영 시 미리보기와 드라이브 링크가 표시됩니다.</div>`;
+        } else if (m.mimeType?.startsWith('video')) {
+          body.innerHTML = `<video src="${src}" controls class="max-h-[60vh] w-full"></video>`;
+        } else {
+          body.innerHTML = `<img src="${src}" alt="${escapeHtml(m.fileName)}" class="max-h-[60vh] max-w-full object-contain" />`;
+        }
+        const link = document.getElementById('previewDriveLink');
+        link.href = m.url || '#';
+        link.classList.toggle('hidden', !m.url);
+        document.getElementById('previewModal').classList.remove('hidden');
+      });
+
+      document.getElementById('btnClosePreview').addEventListener('click', () => {
+        document.getElementById('previewModal').classList.add('hidden');
+      });
+
+      document.getElementById('btnDeletePreviewMedia').addEventListener('click', () => {
+        const c = getCurrentCustomer();
+        if (!c || !state.previewMediaId) return;
+        c.media = (c.media || []).filter(m => m.id !== state.previewMediaId);
+        document.getElementById('previewModal').classList.add('hidden');
+        renderMediaSlots(c);
+        persistCustomer(c);
+      });
+
+      // Settings Modal
+      document.getElementById('btnOpenSettings').addEventListener('click', () => {
+        document.getElementById('settingsModal').classList.remove('hidden');
+      });
+      document.getElementById('btnCloseSettings').addEventListener('click', () => {
+        document.getElementById('settingsModal').classList.add('hidden');
+      });
+      document.getElementById('btnSaveSettings').addEventListener('click', () => {
+        state.gasUrl = document.getElementById('gasUrlInput').value.trim();
+        state.workerName = document.getElementById('workerNameSelect').value;
+        setStorage('ho_gas_url', state.gasUrl);
+        setStorage('ho_worker', state.workerName);
+        document.getElementById('settingsModal').classList.add('hidden');
+        loadData();
+      });
+      document.getElementById('btnResetDemo').addEventListener('click', () => {
+        state.gasUrl = '';
+        document.getElementById('gasUrlInput').value = '';
+        setStorage('ho_gas_url', '');
+        document.getElementById('settingsModal').classList.add('hidden');
+        loadData();
+      });
+    }
+
+    // ====== UTILITIES ======
+    let confirmCallback = null;
+    function openConfirm(title, message, onOk) {
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmMessage').textContent = message;
+      confirmCallback = onOk;
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+    document.getElementById('btnConfirmCancel').addEventListener('click', () => {
+      document.getElementById('confirmModal').classList.add('hidden');
+      confirmCallback = null;
+    });
+    document.getElementById('btnConfirmOk').addEventListener('click', () => {
+      document.getElementById('confirmModal').classList.add('hidden');
+      if (confirmCallback) confirmCallback();
+      confirmCallback = null;
+    });
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.add('hidden'), 2600);
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s]));
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
